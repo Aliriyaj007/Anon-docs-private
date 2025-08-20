@@ -109,6 +109,47 @@ class AnonDocsApp {
         // Mouse movement for inactivity detection
         document.addEventListener('mousemove', this.resetInactivityTimer.bind(this));
         document.addEventListener('keypress', this.resetInactivityTimer.bind(this));
+        
+        // Menu toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => this.toggleSidebar());
+            this.addButtonAnimation(menuToggle);
+        }
+        
+        // Mobile menu overlay
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        if (mobileMenuOverlay) {
+            mobileMenuOverlay.addEventListener('click', () => this.closeSidebar());
+        }
+    }
+
+    // Toggle sidebar
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        
+        if (sidebar && mobileMenuOverlay) {
+            sidebar.classList.toggle('hidden');
+            mobileMenuOverlay.classList.toggle('hidden');
+            
+            // Add/remove active class for accessibility
+            document.getElementById('menu-toggle').classList.toggle('active');
+        }
+    }
+
+    // Close sidebar
+    closeSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
+        
+        if (sidebar && mobileMenuOverlay) {
+            sidebar.classList.add('hidden');
+            mobileMenuOverlay.classList.add('hidden');
+            
+            // Remove active class
+            document.getElementById('menu-toggle').classList.remove('active');
+        }
     }
 
     // Setup button events
@@ -1085,7 +1126,7 @@ endobj
 /Parent 2 0 R
 /MediaBox [0 0 612 792]
 /Contents 4 0 R
-/Resources <<
+Sections <<
 /Font <<
 /F1 5 0 R
 >>
