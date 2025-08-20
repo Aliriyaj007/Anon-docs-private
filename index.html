@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anon Docs - Secure Private Documents</title>
+    <meta name="description" content="Create, encrypt, and manage documents privately. No accounts, no servers, no tracking.">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" href="assets/icons/icon-192.png" type="image/png">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/themes.css">
+    <link rel="stylesheet" href="styles/animations.css">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="spinner"></div>
+        <p>Loading Anon Docs...</p>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="app-container hidden">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <h1><i class="fas fa-lock"></i> Anon Docs</h1>
+            </div>
+            <div class="header-right">
+                <button id="theme-toggle" class="icon-btn" title="Toggle Theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="settings-btn" class="icon-btn" title="Settings">
+                    <i class="fas fa-cog"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <button id="new-doc-btn" class="btn primary">
+                        <i class="fas fa-plus"></i> New Document
+                    </button>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-folder"></i> Folders</h3>
+                    <ul id="folders-list" class="nav-list">
+                        <li class="active"><a href="#" data-folder="all">All Documents</a></li>
+                        <li><a href="#" data-folder="uncategorized">Uncategorized</a></li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-tags"></i> Tags</h3>
+                    <ul id="tags-list" class="nav-list">
+                        <!-- Tags will be populated dynamically -->
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-chart-bar"></i> Analytics</h3>
+                    <ul class="nav-list">
+                        <li><a href="#" id="analytics-btn">Statistics</a></li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-share-alt"></i> Sharing</h3>
+                    <ul class="nav-list">
+                        <li><a href="#" id="view-shared-btn">My Shared Docs</a></li>
+                    </ul>
+                </div>
+                
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-tools"></i> Tools</h3>
+                    <ul class="nav-list">
+                        <li><a href="#" id="backup-btn">Backup Data</a></li>
+                        <li><a href="#" id="restore-btn">Restore Data</a></li>
+                        <li><a href="#" id="lock-btn">Lock App</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Document List -->
+            <main class="content-area">
+                <div class="content-header">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="Search documents...">
+                    </div>
+                    <div class="sort-options">
+                        <select id="sort-select">
+                            <option value="modified">Last Modified</option>
+                            <option value="created">Date Created</option>
+                            <option value="title">Title</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div id="documents-container" class="documents-grid">
+                    <!-- Documents will be populated dynamically -->
+                </div>
+            </main>
+
+            <!-- Editor Panel -->
+            <section id="editor-panel" class="editor-panel hidden">
+                <div class="editor-header">
+                    <input type="text" id="doc-title" placeholder="Document Title" class="doc-title-input">
+                    <div class="editor-actions">
+                        <button id="share-doc-btn" class="btn secondary" title="Share Document">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                        <button id="export-txt-btn" class="btn secondary" title="Export as TXT">
+                            <i class="fas fa-file-alt"></i>
+                        </button>
+                        <button id="export-pdf-btn" class="btn secondary" title="Export as PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </button>
+                        <button id="save-doc-btn" class="btn success">
+                            <i class="fas fa-save"></i> Save
+                        </button>
+                        <button id="close-editor-btn" class="btn secondary">
+                            <i class="fas fa-times"></i> Close
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="editor-toolbar">
+                    <button class="tool-btn" data-command="bold" title="Bold">
+                        <i class="fas fa-bold"></i>
+                    </button>
+                    <button class="tool-btn" data-command="italic" title="Italic">
+                        <i class="fas fa-italic"></i>
+                    </button>
+                    <button class="tool-btn" data-command="underline" title="Underline">
+                        <i class="fas fa-underline"></i>
+                    </button>
+                    <div class="divider"></div>
+                    <button class="tool-btn" data-command="insertUnorderedList" title="Bullet List">
+                        <i class="fas fa-list-ul"></i>
+                    </button>
+                    <button class="tool-btn" data-command="insertOrderedList" title="Numbered List">
+                        <i class="fas fa-list-ol"></i>
+                    </button>
+                    <div class="divider"></div>
+                    <button class="tool-btn" data-command="createLink" title="Insert Link">
+                        <i class="fas fa-link"></i>
+                    </button>
+                    <button class="tool-btn" data-command="insertImage" title="Insert Image">
+                        <i class="fas fa-image"></i>
+                    </button>
+                    <div class="divider"></div>
+                    <button id="encrypt-btn" class="tool-btn" title="Encrypt Document">
+                        <i class="fas fa-lock"></i>
+                    </button>
+                    <button id="fullscreen-btn" class="tool-btn" title="Fullscreen">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+                
+                <div id="doc-editor" class="doc-editor" contenteditable="true">
+                    Start writing your document here...
+                </div>
+                
+                <div class="doc-meta">
+                    <div class="tags-input">
+                        <label>Tags:</label>
+                        <input type="text" id="doc-tags" placeholder="Add tags (comma separated)">
+                    </div>
+                    <div class="doc-info">
+                        <span id="doc-created">Created: --</span>
+                        <span id="doc-modified">Modified: --</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+    
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> Settings</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <h3>Appearance</h3>
+                    <div class="theme-selector">
+                        <button class="theme-btn" data-theme="light">Light</button>
+                        <button class="theme-btn" data-theme="dark">Dark</button>
+                        <button class="theme-btn" data-theme="hacker">Hacker</button>
+                        <button class="theme-btn" data-theme="violet">Violet</button>
+                        <button class="theme-btn" data-theme="yellow">Yellow</button>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3>Security</h3>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="auto-lock-toggle"> 
+                            Auto-lock after inactivity
+                        </label>
+                        <input type="number" id="auto-lock-time" min="1" max="60" value="5"> minutes
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="biometric-toggle"> 
+                            Enable biometric unlock
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="setting-group">
+                    <h3>About</h3>
+                    <p>Anon Docs v1.0 - Secure Private Documents</p>
+                    <p>No data leaves your device. All encryption happens locally.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Encryption Modal -->
+    <div id="encrypt-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-lock"></i> Encrypt Document</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="encrypt-password">Enter Password:</label>
+                    <input type="password" id="encrypt-password" placeholder="Enter encryption password">
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" placeholder="Confirm password">
+                </div>
+                <div class="modal-actions">
+                    <button id="cancel-encrypt" class="btn secondary">Cancel</button>
+                    <button id="confirm-encrypt" class="btn primary">Encrypt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Modal -->
+    <div id="analytics-modal" class="modal hidden">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h2><i class="fas fa-chart-bar"></i> Document Statistics</h2>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="analytics-grid">
+                    <div class="stats-container">
+                        <h3>Document Statistics</h3>
+                        <div class="stat-item">
+                            <span>Total Documents:</span>
+                            <span id="total-docs">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Encrypted Documents:</span>
+                            <span id="encrypted-docs">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Total Words:</span>
+                            <span id="total-words">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Total Tags:</span>
+                            <span id="total-tags">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Storage Used:</span>
+                            <span id="storage-used">0 KB</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Folders:</span>
+                            <span>2</span>
+                        </div>
+                    </div>
+                    <div class="stats-container">
+                        <h3>Recent Activity</h3>
+                        <div class="stat-item">
+                            <span>Documents Created (Last 7 days):</span>
+                            <span id="recent-docs">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Most Used Tag:</span>
+                            <span id="popular-tag">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span>Average Document Length:</span>
+                            <span id="avg-length">0 words</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modals -->
+    <div id="share-modal" class="modal hidden"></div>
+    <div id="share-encrypted-modal" class="modal hidden"></div>
+    <div id="shared-password-modal" class="modal hidden"></div>
+    <div id="shared-documents-modal" class="modal hidden"></div>
+
+    <!-- Scripts -->
+    <script src="js/utils.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/encryption.js"></script>
+    <script src="js/analytics.js"></script>
+    <script src="js/sharing.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => console.log('SW registered'))
+                    .catch(error => console.log('SW registration failed'));
+            });
+        }
+    </script>
+</body>
+</html>
