@@ -248,6 +248,14 @@ class AnonDocsApp {
 
     // Add button animation
     addButtonAnimation(button) {
+        button.addEventListener('mouseenter', () => {
+            button.classList.add('shine');
+        });
+        
+        button.addEventListener('mouseleave', () => {
+            button.classList.remove('shine');
+        });
+        
         button.addEventListener('mousedown', () => {
             button.classList.add('pulse');
         });
@@ -369,6 +377,52 @@ class AnonDocsApp {
             cancelEncrypt.addEventListener('click', () => this.closeModal());
             this.addButtonAnimation(cancelEncrypt);
         }
+        
+        // Share modal events
+        this.setupShareModalEvents();
+    }
+
+    // Setup share modal events
+    setupShareModalEvents() {
+        // Method selection
+        document.addEventListener('change', (e) => {
+            if (e.target.name === 'share-method') {
+                this.toggleShareMethod();
+            }
+        });
+        
+        // Generate button
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'generate-share-btn') {
+                this.generateEncryptedShareLink();
+            }
+        });
+        
+        // Copy buttons
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'copy-key-btn') {
+                const key = document.getElementById('shared-key').value;
+                if (key) {
+                    Utils.copyToClipboard(key);
+                    Utils.showNotification('Shared key copied!', 'success');
+                }
+            }
+            
+            if (e.target.id === 'copy-encrypted-link-btn') {
+                const link = document.getElementById('encrypted-share-link').value;
+                if (link) {
+                    Utils.copyToClipboard(link);
+                    Utils.showNotification('Link copied!', 'success');
+                }
+            }
+        });
+        
+        // Close button
+        document.addEventListener('click', (e) => {
+            if (e.target.id === 'close-encrypted-share-modal') {
+                this.closeModal();
+            }
+        });
     }
 
     // Handle document click
@@ -852,47 +906,6 @@ class AnonDocsApp {
         const modal = document.getElementById('share-encrypted-modal') || this.createModal('share-encrypted-modal');
         modal.innerHTML = modalContent;
         this.openModal('share-encrypted-modal');
-        
-        // Setup event listeners
-        this.setupEncryptedShareEvents();
-    }
-
-    // Setup encrypted share events
-    setupEncryptedShareEvents() {
-        // Method selection
-        const methodInputs = document.querySelectorAll('input[name="share-method"]');
-        methodInputs.forEach(input => {
-            input.addEventListener('change', () => {
-                this.toggleShareMethod();
-            });
-        });
-        
-        // Generate button
-        document.getElementById('generate-share-btn').addEventListener('click', () => {
-            this.generateEncryptedShareLink();
-        });
-        
-        // Copy buttons
-        document.getElementById('copy-key-btn')?.addEventListener('click', () => {
-            const key = document.getElementById('shared-key').value;
-            if (key) {
-                Utils.copyToClipboard(key);
-                Utils.showNotification('Shared key copied!', 'success');
-            }
-        });
-        
-        document.getElementById('copy-encrypted-link-btn')?.addEventListener('click', () => {
-            const link = document.getElementById('encrypted-share-link').value;
-            if (link) {
-                Utils.copyToClipboard(link);
-                Utils.showNotification('Link copied!', 'success');
-            }
-        });
-        
-        // Close button
-        document.getElementById('close-encrypted-share-modal').addEventListener('click', () => {
-            this.closeModal();
-        });
     }
 
     // Toggle share method
@@ -929,9 +942,18 @@ class AnonDocsApp {
                 // Verify password by attempting to decrypt
                 await encryptionManager.decrypt(this.currentDocument.content, password);
                 
-                // Generate share link
-                const shareId = Utils.generateId().substring(0, 12); // Shorter ID for sharing
-                const shareLink = `${window.location.origin}${window.location.pathname}#encrypted=${this.currentDocument.id}&share=${shareId}`;
+                // Generate share link with embedded encrypted content
+                const encryptedContent = await encryptionManager.encrypt(this.currentDocument.content, password);
+                const shareData = {
+                    id: this.currentDocument.id,
+                    title: this.currentDocument.title,
+                    content: encryptedContent,
+                    createdAt: this.currentDocument.createdAt,
+                    passwordProtected: true
+                };
+                
+                const base64Data = btoa(encodeURIComponent(JSON.stringify(shareData)));
+                const shareLink = `${window.location.origin}${window.location.pathname}#shared=${base64Data}`;
                 
                 document.getElementById('encrypted-share-link').value = shareLink;
                 Utils.showNotification('Share link generated successfully!', 'success');
@@ -944,27 +966,43 @@ class AnonDocsApp {
     // Generate shared key
     async generateSharedKey() {
         try {
-            // In a real implementation, you would:
-            // 1. Generate a unique share key
-            // 2. Store the mapping between share key and document ID securely
-            // 3. Return the share key to the user
+            const password = document.getElementById('share-password').value;
+            if (!password) {
+                Utils.showNotification('Please enter the document password', 'error');
+                return;
+            }
             
-            const shareKey = `anon-${Utils.generateId().substring(0, 16)}`;
+            // Verify password by attempting to decrypt
+            await encryptionManager.decrypt(this.currentDocument.content, password);
             
-            // For demo purposes, we'll store this in localStorage
-            // In production, this would be stored server-side or in a secure database
+            // Create self-contained share key with encrypted content
+            const encryptedContent = await encryptionManager.encrypt(this.currentDocument.content, password);
             const shareData = {
+                id: this.currentDocument.id,
+                title: this.currentDocument.title,
+                content: encryptedContent,
+                createdAt: this.currentDocument.createdAt,
+                passwordProtected: true
+            };
+            
+            const base64Data = btoa(encodeURIComponent(JSON.stringify(shareData)));
+            const shareKey = `anon-${Utils.generateId().substring(0, 16)}-${base64Data}`;
+            
+            // Store in localStorage for management
+            const shareRecord = {
+                shareKey: shareKey,
                 documentId: this.currentDocument.id,
+                title: this.currentDocument.title,
                 createdAt: new Date().toISOString(),
                 expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() // 30 days
             };
             
-            localStorage.setItem(`share_${shareKey}`, JSON.stringify(shareData));
+            localStorage.setItem(`share_${shareKey}`, JSON.stringify(shareRecord));
             
             document.getElementById('shared-key').value = shareKey;
             Utils.showNotification('Shared key generated successfully!', 'success');
         } catch (error) {
-            Utils.showNotification('Failed to generate shared key', 'error');
+            Utils.showNotification('Invalid password', 'error');
         }
     }
 
@@ -1015,7 +1053,7 @@ class AnonDocsApp {
         }
         
         try {
-            // Create a simple PDF-like text export
+            // Create a proper PDF using Blob with PDF header
             const content = `Title: ${this.currentDocument.title}
 Created: ${Utils.formatDate(this.currentDocument.createdAt)}
 Modified: ${Utils.formatDate(this.currentDocument.updatedAt)}
@@ -1024,7 +1062,76 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()}`;
             
-            const blob = new Blob([content], { type: 'application/pdf' });
+            // Create a proper PDF structure
+            const pdfContent = `%PDF-1.4
+1 0 obj
+<<
+/Type /Catalog
+/Pages 2 0 R
+>>
+endobj
+
+2 0 obj
+<<
+/Type /Pages
+/Kids [3 0 R]
+/Count 1
+>>
+endobj
+
+3 0 obj
+<<
+/Type /Page
+/Parent 2 0 R
+/MediaBox [0 0 612 792]
+/Contents 4 0 R
+/Resources <<
+/Font <<
+/F1 5 0 R
+>>
+>>
+>>
+endobj
+
+4 0 obj
+<<
+/Length ${content.length + 100}
+>>
+stream
+BT
+/F1 12 Tf
+50 750 Td
+(${content.replace(/\n/g, '\\n')}) Tj
+ET
+endstream
+endobj
+
+5 0 obj
+<<
+/Type /Font
+/Subtype /Type1
+/BaseFont /Helvetica
+>>
+endobj
+
+xref
+0 6
+0000000000 65535 f 
+0000000010 00000 n 
+0000000053 00000 n 
+0000000114 00000 n 
+0000000225 00000 n 
+0000000350 00000 n 
+trailer
+<<
+/Size 6
+/Root 1 0 R
+>>
+startxref
+444
+%%EOF`;
+            
+            const blob = new Blob([pdfContent], { type: 'application/pdf' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -1274,6 +1381,35 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
     async handleUrlParameters() {
         const urlParams = new URLSearchParams(window.location.hash.substring(1));
         
+        // Handle shared document with embedded content
+        if (urlParams.has('shared')) {
+            const base64Data = urlParams.get('shared');
+            try {
+                const jsonData = decodeURIComponent(atob(base64Data));
+                const shareData = JSON.parse(jsonData);
+                
+                // Create a temporary document for viewing
+                const tempDoc = {
+                    id: shareData.id,
+                    title: shareData.title,
+                    content: shareData.content,
+                    createdAt: shareData.createdAt,
+                    updatedAt: shareData.createdAt,
+                    encrypted: shareData.passwordProtected,
+                    tags: []
+                };
+                
+                if (tempDoc.encrypted) {
+                    this.promptForSharedDocumentPassword(tempDoc);
+                } else {
+                    this.openDocumentEditor(tempDoc);
+                }
+            } catch (error) {
+                Utils.showNotification('Invalid shared document link', 'error');
+            }
+            return;
+        }
+        
         // Handle encrypted document sharing
         if (urlParams.has('encrypted') && urlParams.has('share')) {
             const docId = urlParams.get('encrypted');
@@ -1293,22 +1429,6 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
         }
     }
 
-    // Open shared encrypted document
-    async openSharedEncryptedDocument(docId) {
-        try {
-            const doc = await storageManager.getDocument(docId);
-            if (!doc || !doc.encrypted) {
-                Utils.showNotification('Document not found or not encrypted', 'error');
-                return;
-            }
-            
-            // Show password prompt for shared document
-            this.promptForSharedDocumentPassword(doc);
-        } catch (error) {
-            Utils.showNotification('Failed to load shared document', 'error');
-        }
-    }
-
     // Prompt for shared document password
     promptForSharedDocumentPassword(doc) {
         const modalContent = `
@@ -1324,7 +1444,9 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
                     <div class="form-group">
                         <label for="shared-doc-password">Password:</label>
                         <input type="password" id="shared-doc-password" placeholder="Enter document password">
+                        <input type="hidden" id="shared-doc-content" value="${doc.content}">
                         <input type="hidden" id="shared-doc-id" value="${doc.id}">
+                        <input type="hidden" id="shared-doc-title" value="${doc.title}">
                     </div>
                     <div class="modal-actions">
                         <button id="open-shared-doc-btn" class="btn primary">Open Document</button>
@@ -1341,8 +1463,11 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
         // Setup event listeners
         document.getElementById('open-shared-doc-btn').addEventListener('click', () => {
             const password = document.getElementById('shared-doc-password').value;
+            const encryptedContent = document.getElementById('shared-doc-content').value;
             const docId = document.getElementById('shared-doc-id').value;
-            this.decryptAndOpenSharedDocument(docId, password);
+            const docTitle = document.getElementById('shared-doc-title').value;
+            
+            this.decryptAndOpenSharedDocument(encryptedContent, password, docId, docTitle);
         });
         
         document.getElementById('cancel-shared-doc-btn').addEventListener('click', () => {
@@ -1352,20 +1477,23 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
     }
 
     // Decrypt and open shared document
-    async decryptAndOpenSharedDocument(docId, password) {
+    async decryptAndOpenSharedDocument(encryptedContent, password, docId, docTitle) {
         try {
-            const doc = await storageManager.getDocument(docId);
-            if (!doc) {
-                Utils.showNotification('Document not found', 'error');
-                return;
-            }
-            
             Utils.showLoading(document.body);
-            const decryptedContent = await encryptionManager.decrypt(doc.content, password);
-            doc.content = decryptedContent;
-            doc.encrypted = false;
+            const decryptedContent = await encryptionManager.decrypt(encryptedContent, password);
             
-            this.openDocumentEditor(doc);
+            // Create temporary document for viewing
+            const tempDoc = {
+                id: docId,
+                title: docTitle,
+                content: decryptedContent,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                encrypted: false,
+                tags: []
+            };
+            
+            this.openDocumentEditor(tempDoc);
             this.closeModal();
             Utils.hideLoading(document.body);
             
@@ -1395,19 +1523,39 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
                 return;
             }
             
-            // Load document
-            const doc = await storageManager.getDocument(shareData.documentId);
-            if (!doc) {
-                Utils.showNotification('Document not found', 'error');
+            // Extract base64 data from share key
+            const parts = shareKey.split('-');
+            if (parts.length < 3) {
+                Utils.showNotification('Invalid share key', 'error');
                 return;
             }
             
-            if (doc.encrypted) {
+            const base64Data = parts[parts.length - 1];
+            const jsonData = decodeURIComponent(atob(base64Data));
+            const docData = JSON.parse(jsonData);
+            
+            if (docData.passwordProtected) {
                 // For shared key approach, we could embed the password in the key
                 // But for security, we'll still prompt for password
-                this.promptForSharedDocumentPassword(doc);
+                this.promptForSharedDocumentPassword({
+                    id: docData.id,
+                    title: docData.title,
+                    content: docData.content,
+                    createdAt: docData.createdAt
+                });
             } else {
-                this.openDocumentEditor(doc);
+                // Create temporary document for viewing
+                const tempDoc = {
+                    id: docData.id,
+                    title: docData.title,
+                    content: docData.content,
+                    createdAt: docData.createdAt,
+                    updatedAt: docData.createdAt,
+                    encrypted: false,
+                    tags: []
+                };
+                
+                this.openDocumentEditor(tempDoc);
                 Utils.showNotification('Document opened successfully!', 'success');
             }
         } catch (error) {
@@ -1432,8 +1580,7 @@ ${this.currentDocument.content.replace(/<[^>]*>/g, ' ')
                                 ${shares.map(share => `
                                     <div class="shared-document-item">
                                         <div class="shared-document-info">
-                                            <h3>Shared Document</h3>
-                                            <p>Share Key: ${share.shareKey}</p>
+                                            <h3>${this.escapeHtml(share.title)}</h3>
                                             <p>Created: ${Utils.formatDate(share.createdAt)}</p>
                                             <p>Expires: ${Utils.formatDate(share.expiresAt)}</p>
                                             <p>Status: ${new Date(share.expiresAt) > new Date() ? 'Active' : 'Expired'}</p>
