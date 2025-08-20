@@ -36,6 +36,9 @@
         <!-- Header -->
         <header class="app-header">
             <div class="header-left">
+                <button id="menu-toggle" class="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
                 <h1><i class="fas fa-lock"></i> Anon Docs</h1>
             </div>
             <div class="header-right">
@@ -48,148 +51,148 @@
             </div>
         </header>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Sidebar -->
-            <aside class="sidebar">
-                <div class="sidebar-section">
-                    <button id="new-doc-btn" class="btn primary">
-                        <i class="fas fa-plus"></i> New Document
-                    </button>
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-folder"></i> Folders</h3>
-                    <ul id="folders-list" class="nav-list">
-                        <li class="active"><a href="#" data-folder="all">All Documents</a></li>
-                        <li><a href="#" data-folder="uncategorized">Uncategorized</a></li>
-                    </ul>
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-tags"></i> Tags</h3>
-                    <ul id="tags-list" class="nav-list">
-                        <!-- Tags will be populated dynamically -->
-                    </ul>
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-chart-bar"></i> Analytics</h3>
-                    <ul class="nav-list">
-                        <li><a href="#" id="analytics-btn">Statistics</a></li>
-                    </ul>
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-share-alt"></i> Sharing</h3>
-                    <ul class="nav-list">
-                        <li><a href="#" id="view-shared-btn">My Shared Docs</a></li>
-                    </ul>
-                </div>
-                
-                <div class="sidebar-section">
-                    <h3><i class="fas fa-tools"></i> Tools</h3>
-                    <ul class="nav-list">
-                        <li><a href="#" id="backup-btn">Backup Data</a></li>
-                        <li><a href="#" id="restore-btn">Restore Data</a></li>
-                        <li><a href="#" id="lock-btn">Lock App</a></li>
-                    </ul>
-                </div>
-            </aside>
+        <!-- Sidebar -->
+        <aside id="sidebar" class="sidebar hidden">
+            <div class="sidebar-section">
+                <button id="new-doc-btn" class="btn primary">
+                    <i class="fas fa-plus"></i> New Document
+                </button>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-folder"></i> Folders</h3>
+                <ul id="folders-list" class="nav-list">
+                    <li class="active"><a href="#" data-folder="all">All Documents</a></li>
+                    <li><a href="#" data-folder="uncategorized">Uncategorized</a></li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-tags"></i> Tags</h3>
+                <ul id="tags-list" class="nav-list">
+                    <!-- Tags will be populated dynamically -->
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-chart-bar"></i> Analytics</h3>
+                <ul class="nav-list">
+                    <li><a href="#" id="analytics-btn">Statistics</a></li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-share-alt"></i> Sharing</h3>
+                <ul class="nav-list">
+                    <li><a href="#" id="view-shared-btn">My Shared Docs</a></li>
+                </ul>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3><i class="fas fa-tools"></i> Tools</h3>
+                <ul class="nav-list">
+                    <li><a href="#" id="backup-btn">Backup Data</a></li>
+                    <li><a href="#" id="restore-btn">Restore Data</a></li>
+                    <li><a href="#" id="lock-btn">Lock App</a></li>
+                </ul>
+            </div>
+        </aside>
 
-            <!-- Document List -->
-            <main class="content-area">
-                <div class="content-header">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="search-input" placeholder="Search documents...">
-                    </div>
-                    <div class="sort-options">
-                        <select id="sort-select">
-                            <option value="modified">Last Modified</option>
-                            <option value="created">Date Created</option>
-                            <option value="title">Title</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div id="documents-container" class="documents-grid">
-                    <!-- Documents will be populated dynamically -->
-                </div>
-            </main>
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu-overlay" class="mobile-menu-overlay hidden"></div>
 
-            <!-- Editor Panel -->
-            <section id="editor-panel" class="editor-panel hidden">
-                <div class="editor-header">
-                    <input type="text" id="doc-title" placeholder="Document Title" class="doc-title-input">
-                    <div class="editor-actions">
-                        <button id="share-doc-btn" class="btn secondary" title="Share Document">
-                            <i class="fas fa-share-alt"></i>
-                        </button>
-                        <button id="export-txt-btn" class="btn secondary" title="Export as TXT">
-                            <i class="fas fa-file-alt"></i>
-                        </button>
-                        <button id="export-pdf-btn" class="btn secondary" title="Export as PDF">
-                            <i class="fas fa-file-pdf"></i>
-                        </button>
-                        <button id="save-doc-btn" class="btn success">
-                            <i class="fas fa-save"></i> Save
-                        </button>
-                        <button id="close-editor-btn" class="btn secondary">
-                            <i class="fas fa-times"></i> Close
-                        </button>
-                    </div>
+        <!-- Content Area -->
+        <main class="content-area">
+            <div class="content-header">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Search documents...">
                 </div>
-                
-                <div class="editor-toolbar">
-                    <button class="tool-btn" data-command="bold" title="Bold">
-                        <i class="fas fa-bold"></i>
+                <div class="sort-options">
+                    <select id="sort-select">
+                        <option value="modified">Last Modified</option>
+                        <option value="created">Date Created</option>
+                        <option value="title">Title</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div id="documents-container" class="documents-grid">
+                <!-- Documents will be populated dynamically -->
+            </div>
+        </main>
+
+        <!-- Editor Panel -->
+        <section id="editor-panel" class="editor-panel hidden">
+            <div class="editor-header">
+                <input type="text" id="doc-title" placeholder="Document Title" class="doc-title-input">
+                <div class="editor-actions">
+                    <button id="share-doc-btn" class="btn secondary" title="Share Document">
+                        <i class="fas fa-share-alt"></i>
                     </button>
-                    <button class="tool-btn" data-command="italic" title="Italic">
-                        <i class="fas fa-italic"></i>
+                    <button id="export-txt-btn" class="btn secondary" title="Export as TXT">
+                        <i class="fas fa-file-alt"></i>
                     </button>
-                    <button class="tool-btn" data-command="underline" title="Underline">
-                        <i class="fas fa-underline"></i>
+                    <button id="export-pdf-btn" class="btn secondary" title="Export as PDF">
+                        <i class="fas fa-file-pdf"></i>
                     </button>
-                    <div class="divider"></div>
-                    <button class="tool-btn" data-command="insertUnorderedList" title="Bullet List">
-                        <i class="fas fa-list-ul"></i>
+                    <button id="save-doc-btn" class="btn success">
+                        <i class="fas fa-save"></i> Save
                     </button>
-                    <button class="tool-btn" data-command="insertOrderedList" title="Numbered List">
-                        <i class="fas fa-list-ol"></i>
-                    </button>
-                    <div class="divider"></div>
-                    <button class="tool-btn" data-command="createLink" title="Insert Link">
-                        <i class="fas fa-link"></i>
-                    </button>
-                    <button class="tool-btn" data-command="insertImage" title="Insert Image">
-                        <i class="fas fa-image"></i>
-                    </button>
-                    <div class="divider"></div>
-                    <button id="encrypt-btn" class="tool-btn" title="Encrypt Document">
-                        <i class="fas fa-lock"></i>
-                    </button>
-                    <button id="fullscreen-btn" class="tool-btn" title="Fullscreen">
-                        <i class="fas fa-expand"></i>
+                    <button id="close-editor-btn" class="btn secondary">
+                        <i class="fas fa-times"></i> Close
                     </button>
                 </div>
-                
-                <div id="doc-editor" class="doc-editor" contenteditable="true">
-                    Start writing your document here...
+            </div>
+            
+            <div class="editor-toolbar">
+                <button class="tool-btn" data-command="bold" title="Bold">
+                    <i class="fas fa-bold"></i>
+                </button>
+                <button class="tool-btn" data-command="italic" title="Italic">
+                    <i class="fas fa-italic"></i>
+                </button>
+                <button class="tool-btn" data-command="underline" title="Underline">
+                    <i class="fas fa-underline"></i>
+                </button>
+                <div class="divider"></div>
+                <button class="tool-btn" data-command="insertUnorderedList" title="Bullet List">
+                    <i class="fas fa-list-ul"></i>
+                </button>
+                <button class="tool-btn" data-command="insertOrderedList" title="Numbered List">
+                    <i class="fas fa-list-ol"></i>
+                </button>
+                <div class="divider"></div>
+                <button class="tool-btn" data-command="createLink" title="Insert Link">
+                    <i class="fas fa-link"></i>
+                </button>
+                <button class="tool-btn" data-command="insertImage" title="Insert Image">
+                    <i class="fas fa-image"></i>
+                </button>
+                <div class="divider"></div>
+                <button id="encrypt-btn" class="tool-btn" title="Encrypt Document">
+                    <i class="fas fa-lock"></i>
+                </button>
+                <button id="fullscreen-btn" class="tool-btn" title="Fullscreen">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+            
+            <div id="doc-editor" class="doc-editor" contenteditable="true">
+                Start writing your document here...
+            </div>
+            
+            <div class="doc-meta">
+                <div class="tags-input">
+                    <label>Tags:</label>
+                    <input type="text" id="doc-tags" placeholder="Add tags (comma separated)">
                 </div>
-                
-                <div class="doc-meta">
-                    <div class="tags-input">
-                        <label>Tags:</label>
-                        <input type="text" id="doc-tags" placeholder="Add tags (comma separated)">
-                    </div>
-                    <div class="doc-info">
-                        <span id="doc-created">Created: --</span>
-                        <span id="doc-modified">Modified: --</span>
-                    </div>
+                <div class="doc-info">
+                    <span id="doc-created">Created: --</span>
+                    <span id="doc-modified">Modified: --</span>
                 </div>
-            </section>
-        </div>
+            </div>
+        </section>
     </div>
 
     <!-- Modals -->
