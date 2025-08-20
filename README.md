@@ -36,4 +36,4 @@ A secure, private, and offline-first document management Progressive Web App (PW
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/anon-docs.git
+   git clone https://github.com/Aliriyaj007/anon-docs-private.git
